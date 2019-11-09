@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<script src="https://cdn.bootcss.com/jquery/3.4.0/jquery.min.js"></script>
+		<script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+		<link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.0/css/bootstrap.min.css" rel="stylesheet">
+		<script src="https://cdn.bootcss.com/axios/0.19.0/axios.min.js"></script>
+		<script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+	</head>
+	<body>
+		<div id="app" class="col-md-12">
+			<table class="table table-hover">
+				<tr>
+					<th>类型id</th>
+					<th>类型名称</th>
+					<th>类型描述</th>
+					<th>修改</th>
+					<th>删除</th>
+				</tr>
+				<tr v-for="item in list">
+					<td>{{item.cid}}</td>
+					<td>{{item.cname}}</td>
+					<td>{{item.info}}</td>
+					<td>
+						<button class="btn btn-success" @click="updateUI(item)">修改</button>
+					</td>
+					<td>
+						<button class="btn btn-danger" @click="del(item.cid)">删除</button>
+					</td>
+				</tr>
+			</table>
+			<button class="btn btn-primary" @click="addUI">新增类型</button>
+			<form id="addUI">
+				<div class="form-group">
+					<label for="name">类型名称</label>
+					<input type="text" class="form-control" id="cname" v-model="cname">
+				</div>
+				<div class="form-group">
+					<label for="info">类型描述</label>
+					<input type="text" class="form-control" id="info" v-model="info">
+				</div>
+				<button class="btn btn-primary" @click="save">增加类型</button>
+				<button type="reset" class="btn btn-warning">重置类型</button>
+			</form>
+			<form id="updateUI">
+				<input type="hidden" id="cid" v-model="cid">
+				<div class="form-group">
+					<label for="name">类型名称</label>
+					<input type="text" class="form-control" id="cname2" v-model="cname2">
+				</div>
+				<div class="form-group">
+					<label for="info">类型描述</label>
+					<input type="text" class="form-control" id="info2" v-model="info2">
+				</div>
+				<button class="btn btn-primary" @click="update()">修改类型</button>
+				<button type="reset" class="btn btn-warning">重置类型</button>
+			</form>
+		</div>
+		<script>
+			axios.defaults.baseURL = "http://localhost/";
+			var app = new Vue({
+				el: "#app",
+				data: {
+					list: null,
+					cname: "",
+					info: "",
+					cid2: "",
+					cname2: "",
+					info2: "",
+					layerAdd: null,
+					layerUpdate: null,
+				},
+				created() {
+					this.findAll();
+					$("#addUI").hide();
+					$("#updateUI").hide();
+				},
+				methods: {
+
+					findAll() {
+						axios.get("/categorys")
+							.then((response) => {
+								this.list = response.data;
+							})
+							.catch(() => {
+								layer.msg("查询失败");
+							});
+					},
+					update() {
+						axios.put("/categorys", {
+								cid: this.cid2,
+								cname: this.cname2,
+								info: this.info2
+							})
+							.then((response) => {
+								layer.msg("修改成功");
+								this.findAll();
+								layer.close(this.layerUpdate);
+
+							});
+					},
+					updateUI(item) {
+						this.cid2 = item.cid;
+						this.cname2 = item.cname;
+						this.info2 = item.info;
+						this.layerUpdate = layer.open({
+							type: 1,
+							skin: 'layui-layer-rim', //加上边框
+							area: ['420px', '280px'], //宽高
+							content: $("#updateUI")
+						});
+					},
+					del(cid) {
+						var self = this;
+						layer.confirm('你确定要删除？？', {
+							btn: ['确认', '取消'] //按钮
+						}, function() {
+							axios.delete("/categorys/" + cid)
+								.then((response) => {
+									layer.msg("删除成功");
+									self.findAll();
+								});
+						}, function() {});
+						this.findAll();
+					},
+					save() {
+						axios.post("/categorys", {
+								cname: this.cname,
+								info: this.info
+							})
+							.then((response) => {
+								layer.msg("增加成功");
+								this.findAll();
+								layer.close(self.layerAdd);
+							});
+					},
+					addUI() {
+						this.layerAdd = layer.open({
+							type: 1,
+							title: "新增类型",
+							skin: 'layui-layer-rim',
+							area: ['420px', '280px'],
+							content: $("#addUI")
+						});
+					}
+
+				}
+			});
+		</script>
+	</body>
+</html>

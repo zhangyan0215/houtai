@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>订单统计</title>
+		<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+		<script src="https://cdn.bootcss.com/axios/0.19.0/axios.min.js"></script>
+		<script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+		<link href="https://cdn.bootcss.com/twitter-bootstrap/3.4.0/css/bootstrap.min.css" rel="stylesheet">
+		<script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+	</head>
+	<body>
+		<div id="app">
+			<form class="form-inline" id="addForm">
+				<div class="form-group">
+					<label for="proid">products</label>
+					<select class="form-control" v-model="proid">
+						<option v-for="item in products" :value="item.proid">{{item.pname}}</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="uid">users</label>
+					<select class="form-control" v-model="uid">
+						<option v-for="item in users" :value="item.uid">{{item.username}}</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="price">price</label>
+					<input type="text" class="form-control" v-model="price">
+				</div>
+				<div class="form-group">
+					<label for="datetime">datetime</label>
+					<input type="text" class="form-control" v-model="datetime">
+				</div>
+				<div class="form-group">
+					<label for="pay">pay</label>
+					<input type="text" class="form-control" v-model="pay">
+				</div>
+				<div class="form-group">
+					<label for="limitTime">limitTime</label>
+					<input type="text" class="form-control" v-model="limitTime">
+				</div>
+				<div class="form-group">
+					<label for="paytime">paytime</label>
+					<input type="text" class="form-control" v-model="paytime">
+				</div>
+				<button type="button" class="btn btn-default" @click="save">增加订单</button>
+			</form>
+			<div id="upForm">
+				<form class="form-inline">
+					<input type="hidden" v-model="oid2" />
+					<div class="form-group">
+						<label for="proid">proid</label>
+						<input type="text" class="form-control" v-model="proid2">
+					</div>
+					<div class="form-group">
+						<label for="uid">uid</label>
+						<input type="text" class="form-control" v-model="uid2">
+					</div>
+					<div class="form-group">
+						<label for="price">price</label>
+						<input type="text" class="form-control" v-model="price2">
+					</div>
+					<div class="form-group">
+						<label for="datetime">datetime</label>
+						<input type="text" class="form-control" v-model="datetime2">
+					</div>
+					<div class="form-group">
+						<label for="pay">pay</label>
+						<input type="text" class="form-control" v-model="pay2">
+					</div>
+					<div class="form-group">
+						<label for="limitTime">limitTime</label>
+						<input type="text" class="form-control" v-model="limitTime2">
+					</div>
+					<div class="form-group">
+						<label for="paytime">paytime</label>
+						<input type="text" class="form-control" v-model="paytime2">
+					</div>
+					<button type="button" class="btn btn-default" @click="update">修改订单</button>
+				</form>
+			</div>
+			<table class="table table-hover">
+				<tr>
+					<th>订单编号</th>
+					<th>产品名称</th>
+					<th>用户名称</th>
+					<th>成交价</th>
+					<th>成交时间</th>
+					<th>手续费</th>
+					<th>规定时间</th>
+					<th>实际支付时间</th>
+					<th>编辑</th>
+				</tr>
+				<tr v-for="item in list">
+					<td>{{item.oid}}</td>
+					<td>{{item.product.pname}}</td>
+					<td>{{item.users.username}}</td>
+					<td>{{item.price}}</td>
+					<td>{{item.datetime}}</td>
+					<td>{{item.pay}}</td>
+					<td>{{item.limitTime}}</td>
+					<td>{{item.paytime}}</td>
+					<td>
+						<a href="#" @click="del(item.oid)">删除</a>
+						|
+						<a href="#" @click="upform(item)">修改</a>
+					</td>
+				</tr>
+			</table>
+			<button class="btn btn-primary" @click="addForm">添加订单</button>
+		</div>
+		<script>
+			axios.defaults.baseURL = "http://localhost/";
+			var vue = new Vue({
+				el: "#app",
+				data: {
+					proid: '',
+					uid: '',
+					price: '',
+					datetime: '',
+					pay: '',
+					limitTime: '',
+					paytime: '',
+					list: null,
+					products:null,
+					users:null,
+					oid2: '',
+					proid2: '',
+					uid2: '',
+					price2: '',
+					datetime2: '',
+					pay2: '',
+					limitTime2: '',
+					paytime2: ''
+				},
+				created() {
+					this.findAll();
+					this.findProducts();
+					this.findUsers();
+					$("#addForm").hide();
+					$("#upForm").hide();
+				},
+				methods: {
+					findUsers(){
+						axios.get("/users")
+							.then((response) => {
+								this.users = response.data;
+							})
+							.catch(() => {
+								layer.msg("查询失败！");
+							});
+					},
+					findProducts(){
+						axios.get("/products")
+							.then((response) => {
+								this.products = response.data;
+							})
+							.catch(() => {
+								layer.msg("查询失败！");
+							});
+					},
+					update() {
+						axios.put("/orders", {
+								oid: this.oid2,
+								proid: this.proid2,
+								uid: this.uid2,
+								price: this.price2,
+								datetime: this.datetime2,
+								pay: this.pay2,
+								limitTime: this.limitTime2,
+								paytime: this.paytime2 
+							})
+							.then((response) => {
+								layer.msg("修改成功");
+								this.findAll();
+								layer.close(this.layerRef);
+							});
+					},
+					upform(item) {
+						this.oid2 = item.oid;
+						this.proid2 = item.proid;
+						this.uid2 = item.uid;
+						this.price2 = item.price;
+						this.datetime2 = item.datetime;
+						this.pay2 = item.pay;
+						this.limitTime2 = item.limitTime;
+						this.paytime2 = item.paytime;
+						this.layerRef = layer.open({
+							type: 1,
+							skin: 'layui-layer-rim', //加上边框
+							area: ['520px', '320px'], //宽高
+							content: $("#upForm")
+						});
+					},
+					del(oid) {
+						var self = this;
+						layer.confirm('你确定要删除？？', {
+							btn: ['确认', '取消'] //按钮
+						}, function() {
+							axios.delete("/orders/" + oid)
+								.then(function(response) {
+									layer.msg("删除成功！");
+									self.findAll();
+								});
+						}, function() {
+							// 取消 啥都不干..
+						});
+					},
+					save() {
+						$("#addForm").hide();
+						axios.post("/orders", {
+								oid: this.oid,
+								proid: this.proid,
+								uid: this.uid,
+								price: this.price,
+								datetime: this.datetime,
+								pay: this.pay,
+								limitTime: this.limitTime,
+								paytime: this.paytime
+							})
+							.then((response) => {
+								layer.msg("添加成功！");
+								this.findAll();
+							});
+					},
+					addForm(){
+						$("#addForm").show();
+					},
+					findAll() {
+						axios.get("/orders")
+							.then((response) => {
+								this.list = response.data;
+							})
+							.catch(() => {
+								layer.msg("查询失败！");
+							});
+					}
+				}
+			})
+		</script>
+	</body>
+</html>

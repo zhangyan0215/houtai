@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="https://cdn.bootcss.com/jquery/3.4.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+    <link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/axios/0.19.0/axios.min.js"></script>
+    <script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+  </head>
+  <body>
+    <div id="app">
+        <table id="room" class="table table-hover">
+          <tr>
+            <th>竞拍室编号</th>
+            <th>商品名</th>
+            <th>商品状态</th>
+            <th>房间号</th>
+          </tr>
+          <tr v-for="item in list">
+            <td>{{ item.roomid }}</td>
+            <td>{{ item.product.pname }}</td>
+            <td>{{ item.product.status|filterStatus() }}</td>
+            <td>{{ item.port }}</td>
+          </tr>
+        </table>
+    </div>
+
+    <script>
+		axios.defaults.baseURL = "http://localhost/";
+          var app = new Vue({
+              el:"#app",
+              data:{
+                  list:null,
+              },
+              created() {
+                  this.findAll();
+              },
+              methods: {
+                  findAll(){
+                      var self = this;
+                      axios.get("/room")
+                      .then((response) =>{
+                          self.list = response.data;
+                          console.log(response);
+                          console.log(self.list);
+                      })
+                      .catch(()=>{
+                          layer.msg("查询失败")
+                      })
+                  }
+              },
+              filters: {
+                    filterStatus(val) {
+                        switch (val) {
+                        case 1:
+                            return '公告期';
+                            break;
+                        case 2:
+                            return '拍卖期';
+                            break;
+                        case 3:
+                            return '流拍';
+                            break;
+                        case 4:
+                            return '下架';
+                            break;
+                        case 5:
+                            return '已成交';
+                            break;
+                        case 6:
+                            return '未审核';
+                            break;
+                        case 7:
+                            return '已审核';
+                            break;
+                        }
+                    }
+                }
+         })
+    </script>
+  </body>
+</html>

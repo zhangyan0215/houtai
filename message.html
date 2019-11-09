@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+		<script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+		<link href="https://cdn.bootcss.com/twitter-bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
+		<script>
+		$(function() {
+			
+		
+			$("#saveBtn").click(function() {
+		
+				var content = $("input[name=content]").val();
+				var pubdate = $("input[name=pubdate]").val();
+				$.ajax({
+					type:"post",
+					url:"http://localhost/messages",
+					data:JSON.stringify({content:content,pubdate:pubdate}),
+					contentType:"application/json",
+					success:function(data) {
+						alert("添加成功")
+					}
+				});
+			});
+			var index;
+			
+			function showTable() {
+				$.ajax({
+					type:"get",
+					url:"http://localhost/messages",
+					headers: {
+						"Accept":"application/json"
+					},
+					success:function(data) {
+			
+						// 清空#tb的所有子节点
+						$("#tb").empty();
+						
+						for(i = 0; i < data.length; i++) {
+							var tr = $("<tr>");
+							var td = $("<td>");
+							var td2 = $("<td>");
+							var td3 = $("<td>");
+							var td4 = $("<td>");
+			
+							td.html(data[i].mid);
+							td2.html(data[i].content);
+							td3.html(data[i].pubdate);
+			
+							// 制作删除开始
+							var del = $("<a>");
+							
+			
+							del[0].xx = data[i].mid;
+			
+							del.html("删除");
+							del.click(function() {
+			
+								$.ajax({
+									type:"post",
+									url:"http://localhost/messages",
+									data:{mid:this.xx,_method:"delete"},
+									success:function() {
+										showTable();
+									}
+								});
+							});
+							td4.html(del);
+							// 制作删除结束
+							
+			
+							// 制作修改开始
+							var upd = $("<a>");
+							upd.html("|修改");
+			
+							upd[0].mid = data[i].mid;
+							upd[0].content = data[i].content;
+							upd[0].pubdate = data[i].pubdate;
+			
+							upd.click(function(){
+			
+								$("input[name=mid2]").val(this.mid);
+								$("input[name=content2]").val(this.content);
+								$("input[name=pubdate2]").val(this.pubdate);
+			
+								var div = $("#d1");
+								div.css("height", "100px");
+			
+							
+			
+								index = layer.open({
+								  type: 1,
+								  skin: 'layui-layer-rim', //加上边框
+								  area: ['420px', '240px'], //宽高
+								  content: div
+								});
+							});
+			
+							td4.append(upd);
+							// 制作修改结束
+						
+			
+							tr.append(td);
+							tr.append(td2);
+							tr.append(td3);
+							tr.append(td4);
+			
+							$("#tb").append(tr);
+						}
+			
+			
+					}
+				});
+			}
+			
+			
+			showTable();
+			
+			$("#updateBtn").click(function() {
+			
+				var mid = $("input[name=mid2]").val();
+				var content = $("input[name=content2]").val();
+				var pubdate = $("input[name=pubdate2]").val();
+			
+				$.ajax({
+					type:"post",
+					url:"http://localhost/messages/update",
+					data:JSON.stringify({"mid":mid, "content":content,"pubdate":pubdate}),
+					contentType:"application/json",
+					success:function() {
+						$("#d1").css("height", "0px");
+						layer.close(index);
+						showTable();
+					}
+				});
+			});
+			
+		});
+	</script>
+		
+	</head>
+	<body>
+		
+		<table class="table table-hover col-md-12">
+			<tr>
+				<th>mid</th>
+				<th>content</th>
+				<th>pubdate</th>
+				<th>操作</th>
+			</tr>
+			<tbody id="tb">
+			</tbody>
+		</table>
+		
+		<div id="d1"  style="height:0px; overflow: hidden;">
+			<form id="updateForm" >
+				<input type="hidden" name="mid2" /><br />
+				content:<input type="text" name="content2" /><br />
+				pubdate:<input type="text" name="pubdate2" /><br />
+				<button id="updateBtn" type="button">修改公告</button>
+			</form>
+		</div>
+	</body>
+</html>
